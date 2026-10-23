@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>校园信息管理系统</title>
+<style>
+  :root { --primary:#2e7d32; --bg:#f5f7fa; --card:#fff; --border:#e0e0e0; --text:#222; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Microsoft YaHei","PingFang SC",sans-serif; background:var(--bg); color:var(--text); }
+  header { background:var(--primary); color:#fff; padding:16px 24px; font-size:20px; font-weight:bold; }
+  .container { max-width:960px; margin:24px auto; padding:0 16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+  h2 { margin-top:0; font-size:18px; color:var(--primary); }
+  label { display:block; margin:8px 0 4px; font-size:14px; }
+  input { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:14px; }
+  button { background:var(--primary); color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:14px; margin-top:10px; }
+  button:hover { opacity:.9; }
+  button.small { padding:4px 10px; font-size:13px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; }
+  .row > div { flex:1; min-width:140px; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
+  th,td { border:1px solid var(--border); padding:8px; text-align:left; }
+  th { background:#f0f4f0; }
+  .msg { margin-top:10px; font-size:13px; padding:8px 10px; border-radius:6px; word-break:break-all; }
+  .ok { background:#e8f5e9; color:#2e7d32; }
+  .err { background:#ffebee; color:#c62828; }
+  .muted { color:#888; font-size:13px; }
+</style>
+</head>
+<body>
+<header>校园信息管理系统（Flask + MySQL）</header>
+<div class="container">
+
+  <div class="card">
+    <h2>① 登录</h2>
+    <div class="row">
+      <div><label>用户名</label><input id="username" value="admin"></div>
+      <div><label>密码</label><input id="password" value="123456" type="password"></div>
+    </div>
+    <button onclick="doLogin()">登录</button>
+    <div id="loginMsg" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>② 学生管理</h2>
+    <div class="row">
+      <div><label>姓名</label><input id="s_name" placeholder="如：李四"></div>
+      <div><label>性别</label><input id="s_gender" placeholder="男/女"></div>
+      <div><label>专业</label><input id="s_major" placeholder="如：计算机"></div>
+      <div><label>年级</label><input id="s_grade" placeholder="如：2023"></div>
+    </div>
+    <button onclick="addStudent()">新增学生</button>
+    <button onclick="loadStudents()">刷新列表</button>
+    <div id="stuMsg" class="msg"></div>
+    <table id="stuTable">
+      <thead><tr><th>ID</th><th>姓名</th><th>性别</th><th>专业</th><th>年级</th><th>操作</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>③ 课程列表</h2>
+    <button onclick="loadCourses()">加载课程</button>
+    <div id="courseMsg" class="msg"></div>
+    <table id="courseTable">
+      <thead><tr><th>ID</th><th>课程名</th><th>教师</th><th>学分</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <p class="muted">使用步骤：① 终端运行 <code>python app.py</code> 启动后端（监听 :5000）；② 浏览器打开本页面；③ 点按钮即可调用接口。</p>
+</div>
+
+<script>
+const BASE = "http://localhost:5000";
+
+async function api(method, path, payload) {
+  const opt = { method, headers: { "Content-Type": "application/json" } };
+  if (payload) opt.body = JSON.stringify(payload);
+  const res = await fetch(BASE + path, opt);
+  return await res.json();
+}
+
+function show(el, data, ok) {
+  const box = document.getElementById(el);
+  box.className = "msg " + (ok ? "ok" : "err");
+  box.textContent = JSON.stringify(data);
+}
+
+async function doLogin() {
+  const r = await api("POST", "/login", { username: username.value, password: password.value });
+  show("loginMsg", r, r.code === 200);
+}
+
+async function addStudent() {
+  const r = await api("POST", "/student/add", {
+    name: s_name.value, gender: s_gender.value, major: s_major.value, grade: s_grade.value
+  });
+  show("stuMsg", r, r.code === 200);
+  if (r.code === 200) loadStudents();
+}
+
+async function loadStudents() {
+  const r = await api("GET", "/student/list");
+  const tb = document.querySelector("#stuTable tbody");
+  tb.innerHTML = "";
+  (r.data || []).forEach(s => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${s.id}</td><td>${s.name}</td><td>${s.gender||''}</td><td>${s.major||''}</td><td>${s.grade||''}</td>
+      <td><button class="small" onclick="delStudent(${s.id})">删除</button></td>`;
+    tb.appendChild(tr);
+  });
+  show("stuMsg", "已加载 " + (r.data||[]).length + " 条", r.code === 200);
+}
+
+async function delStudent(id) {
+  const r = await api("POST", "/student/delete", { id });
+  show("stuMsg", r, r.code === 200);
+  if (r.code === 200) loadStudents();
+}
+
+async function loadCourses() {
+  const r = await api("GET", "/course/list");
+  const tb = document.querySelector("#courseTable tbody");
+  tb.innerHTML = "";
+  (r.data || []).forEach(c => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${c.id}</td><td>${c.name}</td><td>${c.teacher||''}</td><td>${c.credit||''}</td>`;
+    tb.appendChild(tr);
+  });
+  show("courseMsg", "已加载 " + (r.data||[]).length + " 条课程", r.code === 200);
+}
+</script>
+</body>
+</html>
