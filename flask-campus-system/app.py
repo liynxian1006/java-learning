@@ -21,7 +21,7 @@ CORS(app)  # 允许前端跨域调用
 DB_CONFIG = {
     "host": "localhost",
     "user": "root",
-    "password": "你的密码",
+    "password": "123456",
     "db": "campus_db",
     "charset": "utf8mb4",
     "cursorclass": pymysql.cursors.DictCursor,
