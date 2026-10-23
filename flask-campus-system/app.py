@@ -10,6 +10,7 @@
   3. 修改下方 DB_CONFIG 的 password 为你的数据库密码
   4. python app.py   （默认 http://localhost:5000）
 """
+import os
 import pymysql
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -21,7 +22,7 @@ CORS(app)  # 允许前端跨域调用
 DB_CONFIG = {
     "host": "localhost",
     "user": "root",
-    "password": "123456",
+    "password": os.getenv("DB_PASSWORD", "123456"),
     "db": "campus_db",
     "charset": "utf8mb4",
     "cursorclass": pymysql.cursors.DictCursor,
