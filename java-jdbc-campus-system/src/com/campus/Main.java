@@ -24,6 +24,7 @@ public class Main {
             System.out.println(stu.getId() + " | " + stu.getName() + " | " + stu.getMajor());
         }
 
-        System.out.println("提示：先把 schema.sql 在 MySQL 执行建表，并修改 DBUtil 密码后再运行。");
+        System.out.println("提示：数据来自 MySQL 的 campus_job_db.student 表；"
+                + "数据库密码读环境变量 DB_PASSWORD，默认 123456。");
     }
 }

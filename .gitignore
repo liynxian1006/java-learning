@@ -1,11 +1,16 @@
 # 编译产物（Java）
 out/
+target/
 *.class
+out.txt
 
 # IntelliJ IDEA
 .idea/
 *.iml
 *.iml
+
+# 项目内置的 JDBC 驱动（由 pom.xml 统一管理版本，不入库）
+java-jdbc-campus-system/lib/
 
 # Python
 __pycache__/
