@@ -1,0 +1,59 @@
+# ============================================================
+#  Spring Boot 配置文件
+#  对比项目二：以前这些（URL/账号/密码）写在 DBUtil.java 里硬编码，
+#              现在全部外置到配置文件，改配置不用重新编译代码。
+# ============================================================
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+  # Spring Boot 3.x 默认把未匹配的路径当「静态资源找不到」处理，
+  # 抛的是 NoResourceFoundException 而不是 NoHandlerFoundException，
+  # 我们的全局 404 处理器收不到，只能返回 500。
+  # 配合下方 spring.mvc.static-path-pattern 把静态资源限制到 /ui/**，
+  # 这样未匹配的接口路径就会正确走 404 处理器。
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+spring:
+  application:
+    name: campus-system
+
+  mvc:
+    # 静态资源只暴露在 /ui/** 下（对应 classpath:/static/）
+    # 这样 /index.html 需改成 /ui/index.html，而 /not-exist 这类不存在的接口
+    # 会正确抛出 NoHandlerFoundException → 被全局处理器转成 404
+    static-path-pattern: /ui/**
+
+  # ---------------- 数据源（Spring Boot 自动装配 HikariCP 连接池）----------------
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 密码用环境变量占位符：优先读环境变量 DB_PASSWORD，没有则用默认值
+    # ${DB_PASSWORD:123456}  冒号后面是默认值，写法是 Spring 的属性占位符
+    url: jdbc:mysql://localhost:3306/campus_job_db?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: root
+    password: ${DB_PASSWORD:123456}
+    # HikariCP 连接池参数（项目二里没有池，每次都新建连接）
+    hikari:
+      maximum-pool-size: 10      # 最多 10 条连接
+      minimum-idle: 2            # 至少保持 2 条空闲
+      connection-timeout: 30000  # 拿连接最多等 30 秒
+
+  # ---------------- MyBatis ----------------
+mybatis:
+  # Mapper XML 文件位置
+  mapper-locations: classpath*:mapper/*.xml
+  # 实体类包路径：给 XML 里的 resultType 提供包名简写
+  type-aliases-package: com.campus.tlias.entity
+  configuration:
+    # 开启驼峰命名自动映射：数据库 student_name → Java studentName
+    map-underscore-to-camel-case: true
+    # 把执行的 SQL 打印到控制台（学习阶段必须开，调试神器）
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# ---------------- 自定义业务配置 ----------------
+campus:
+  name: 校园实习就业信息管理系统

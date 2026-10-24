@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>校园实习就业信息管理系统</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #f5f6f8; color: #1f2328; padding: 24px; line-height: 1.6;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header { background: linear-gradient(135deg, #2b5876, #4e4376); color: #fff;
+           padding: 24px 28px; border-radius: 12px; margin-bottom: 20px; }
+  header h1 { font-size: 22px; font-weight: 500; }
+  header p { opacity: .85; font-size: 13px; margin-top: 6px; }
+  .badge { display: inline-block; background: rgba(255,255,255,.2); padding: 2px 10px;
+           border-radius: 20px; font-size: 12px; margin-right: 8px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: #fff; border: 1px solid #e3e6ea; border-radius: 12px; padding: 20px; }
+  .card h2 { font-size: 15px; font-weight: 500; margin-bottom: 14px;
+             display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #4e4376; }
+  label { display: block; font-size: 12px; color: #57606a; margin: 9px 0 4px; }
+  input { width: 100%; padding: 8px 10px; border: 1px solid #d0d7de; border-radius: 6px;
+          font-size: 13px; font-family: inherit; }
+  input:focus { outline: none; border-color: #4e4376; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+  button { padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px;
+           cursor: pointer; font-family: inherit; transition: .15s; }
+  .btn-primary { background: #4e4376; color: #fff; }
+  .btn-primary:hover { background: #3b3358; }
+  .btn-ghost { background: #eef0f3; color: #24292f; }
+  .btn-ghost:hover { background: #e0e3e8; }
+  .btn-danger { background: #fde8e8; color: #b42318; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+  th { background: #f6f8fa; text-align: left; padding: 8px 10px; font-weight: 500;
+       border-bottom: 1px solid #e3e6ea; white-space: nowrap; }
+  td { padding: 8px 10px; border-bottom: 1px solid #eef0f3; }
+  tr:hover td { background: #fafbfc; }
+  .tip { font-size: 12px; color: #6b7280; background: #f6f8fa; padding: 9px 12px;
+         border-radius: 6px; margin-top: 12px; border-left: 3px solid #4e4376; }
+  #log { background: #0d1117; color: #c9d1d9; font-family: ui-monospace, Consolas, monospace;
+         font-size: 11.5px; padding: 12px; border-radius: 8px; margin-top: 18px;
+         max-height: 320px; overflow-y: auto; line-height: 1.65; }
+  .ok { color: #3fb950; } .err { color: #f85149; } .info { color: #58a6ff; }
+  .api-item { display: flex; justify-content: space-between; align-items: center;
+              padding: 7px 0; border-bottom: 1px dashed #e8eaed; font-size: 12.5px; }
+  .method { font-family: ui-monospace, monospace; font-weight: 500; padding: 2px 7px;
+            border-radius: 4px; font-size: 11px; }
+  .m-GET { background: #ddf4ff; color: #0969da; }
+  .m-POST { background: #dafbe1; color: #1a7f37; }
+  .m-PUT { background: #fff3cd; color: #9a6700; }
+  .m-DELETE { background: #ffebe9; color: #cf222e; }
+  .path { font-family: ui-monospace, monospace; color: #57606a; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>校园实习就业信息管理系统</h1>
+    <p>
+      <span class="badge">Spring Boot 3.2.5</span>
+      <span class="badge">MyBatis 3.0.3</span>
+      <span class="badge">MySQL 8.0</span>
+      <span class="badge">阶段三框架重写版</span>
+    </p>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="dot"></span>新增学生</h2>
+      <label>姓名（必填，留空会触发参数校验失败）</label>
+      <input id="name" placeholder="如：张三">
+      <div class="row">
+        <div>
+          <label>专业</label>
+          <input id="major" placeholder="如：计算机科学与技术">
+        </div>
+        <div>
+          <label>手机号</label>
+          <input id="phone" placeholder="如：13800000000">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="addStudent()">提交新增</button>
+        <button class="btn-ghost" onclick="testValidation()">试试校验失败</button>
+      </div>
+      <div class="tip">这里演示 @Valid 参数校验 + 全局异常处理器：姓名留空会返回
+        <code>{"code":400,"msg":"参数校验失败：姓名不能为空"}</code></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>岗位查询</h2>
+      <div class="row">
+        <div>
+          <label>专业关键字（模糊）</label>
+          <input id="majorQ" placeholder="如：计算机">
+        </div>
+        <div>
+          <label>每页条数</label>
+          <input id="size" type="number" value="10">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="queryJobs()">查询岗位</button>
+        <button class="btn-ghost" onclick="querySalary()">按薪资 ≥ 15000</button>
+        <button class="btn-ghost" onclick="queryStudents()">查学生</button>
+      </div>
+      <div class="tip">薪资区间查询演示 MyBatis 动态 SQL：<code>salary</code> 字段存的是
+        "8000-12000" 这种字符串，必须用 <code>SUBSTRING_INDEX</code> 拆开转数字再比较。</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h2><span class="dot"></span>数据展示</h2>
+    <div id="result" style="color:#6b7280;font-size:13px">点击上方按钮开始查询…</div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h2><span class="dot"></span>接口清单</h2>
+    <div class="api-item"><span><span class="method m-GET">GET</span> <span class="path">/student/list</span></span><span>查询全部学生</span></div>
+    <div class="api-item"><span><span class="method m-GET">GET</span> <span class="path">/student/{id}</span></span><span>按 id 查询学生</span></div>
+    <div class="api-item"><span><span class="method m-POST">POST</span> <span class="path">/student/add</span></span><span>新增学生</span></div>
+    <div class="api-item"><span><span class="method m-PUT">PUT</span> <span class="path">/student/update</span></span><span>修改学生</span></div>
+    <div class="api-item"><span><span class="method m-DELETE">DELETE</span> <span class="path">/student/{id}</span></span><span>删除学生</span></div>
+    <div class="api-item"><span><span class="method m-GET">GET</span> <span class="path">/job/list</span></span><span>查询全部岗位</span></div>
+    <div class="api-item"><span><span class="method m-GET">GET</span> <span class="path">/job/page?page=1&amp;size=10</span></span><span>分页查询岗位</span></div>
+    <div class="api-item"><span><span class="method m-GET">GET</span> <span class="path">/job/major?major=计算机</span></span><span>按专业模糊查</span></div>
+    <div class="api-item"><span><span class="method m-GET">GET</span> <span class="path">/job/salary?min=&amp;max=</span></span><span>按薪资区间查</span></div>
+  </div>
+
+  <div id="log"></div>
+</div>
+
+<script>
+  const BASE = 'http://localhost:8080';
+  const logBox = document.getElementById('log');
+  function log(text, cls) {
+    const t = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+    const div = document.createElement('div');
+    div.innerHTML = `<span style="color:#6e7681">${t}</span> <span class="${cls||''}">${text}</span>`;
+    logBox.prepend(div);
+  }
+
+  async function api(method, path, body) {
+    log(`→ ${method} ${BASE}${path}`, 'info');
+    const opt = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opt.body = JSON.stringify(body);
+    const res = await fetch(BASE + path, opt);
+    const json = await res.json();
+    log(`← HTTP ${res.status}  ${JSON.stringify(json).slice(0, 200)}`,
+        json.code === 200 ? 'ok' : 'err');
+    return json;
+  }
+
+  function renderTable(cols, rows) {
+    if (!rows || !rows.length) {
+      document.getElementById('result').innerHTML =
+        '<div class="tip">查询成功，但没有匹配的数据</div>';
+      return;
+    }
+    let html = '<table><thead><tr>' +
+      cols.map(c => `<th>${c.label}</th>`).join('') + '</tr></thead><tbody>';
+    rows.forEach(r => {
+      html += '<tr>' + cols.map(c => `<td>${r[c.key] ?? ''}</td>`).join('') + '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('result').innerHTML = html;
+  }
+
+  const STUDENT_COLS = [
+    { key: 'id', label: 'ID' }, { key: 'name', label: '姓名' },
+    { key: 'major', label: '专业' }, { key: 'phone', label: '手机号' }
+  ];
+  const JOB_COLS = [
+    { key: 'id', label: 'ID' }, { key: 'title', label: '岗位' },
+    { key: 'salary', label: '薪资' }, { key: 'majorRequired', label: '要求专业' }
+  ];
+
+  async function addStudent() {
+    const body = {
+      name: document.getElementById('name').value,
+      major: document.getElementById('major').value,
+      phone: document.getElementById('phone').value
+    };
+    const j = await api('POST', '/student/add', body);
+    if (j.code === 200) {
+      log('新增成功，刷新学生列表', 'ok');
+      queryStudents();
+    }
+  }
+
+  async function testValidation() {
+    document.getElementById('name').value = '';
+    const j = await api('POST', '/student/add',
+      { name: '', major: '软件工程', phone: '13900000000' });
+    document.getElementById('result').innerHTML =
+      `<div class="tip">后端返回：<code>${JSON.stringify(j)}</code><br>
+       全局异常处理器把校验失败转成了统一的 JSON 格式，HTTP 状态码 400。</div>`;
+  }
+
+  async function queryStudents() {
+    const j = await api('GET', '/student/list');
+    renderTable(STUDENT_COLS, j.data);
+  }
+
+  async function queryJobs() {
+    const major = document.getElementById('majorQ').value;
+    const size = document.getElementById('size').value || 10;
+    const path = major ? `/job/page?page=1&size=${size}&majorRequired=${encodeURIComponent(major)}`
+                       : `/job/page?page=1&size=${size}`;
+    const j = await api('GET', path);
+    renderTable(JOB_COLS, j.data);
+  }
+
+  async function querySalary() {
+    const j = await api('GET', '/job/salary?min=15000');
+    renderTable(JOB_COLS, j.data);
+  }
+</script>
+</body>
+</html>

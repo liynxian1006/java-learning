@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  JobMapper 的 XML 映射。
+
+  关键概念：
+  1. namespace 必须等于 Mapper 接口的全限定名（com.campus.tlias.mapper.JobMapper）
+  2. 每个 <select>/<insert>/<update>/<delete> 的 id 必须等于接口方法名
+  3. #{} 是占位符，等价于 JDBC 的 ?，会自动防 SQL 注入
+  4. ${} 是字符串直接拼接（危险！本项目不用于用户输入）
+  5. <if> / <where> / <choose> 是动态 SQL，条件成立才拼进 SQL
+-->
+<mapper namespace="com.campus.tlias.mapper.JobMapper">
+
+    <resultMap id="jobMap" type="com.campus.tlias.entity.Job">
+        <id property="id" column="id"/>
+        <result property="companyId" column="company_id"/>
+        <result property="title" column="title"/>
+        <result property="salary" column="salary"/>
+        <result property="majorRequired" column="major_required"/>
+    </resultMap>
+
+    <!-- 分页查询：条件为空时不加 WHERE，有条件时用 <where> 自动去掉多余的 AND -->
+    <select id="pageQuery" resultMap="jobMap">
+        SELECT id, company_id, title, salary, major_required
+        FROM job
+        <where>
+            <if test="condition.majorRequired != null and condition.majorRequired != ''">
+                AND major_required LIKE CONCAT('%', #{condition.majorRequired}, '%')
+            </if>
+            <if test="condition.title != null and condition.title != ''">
+                AND title LIKE CONCAT('%', #{condition.title}, '%')
+            </if>
+        </where>
+        ORDER BY id
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 按专业模糊查询：注意 % 写在 CONCAT 里，而不是直接拼在 SQL 字符串中 -->
+    <select id="listByMajor" resultMap="jobMap">
+        SELECT id, company_id, title, salary, major_required
+        FROM job
+        WHERE major_required LIKE CONCAT('%', #{major}, '%')
+        ORDER BY id
+    </select>
+
+    <!--
+      按薪资区间查询：<where> 自动去掉多余的 AND，<if> 条件成立才拼进 SQL。
+      对比项目二：那边要写三个不同的 SQL 方法，这边一个动态 SQL 全搞定。
+
+      重要：salary 字段是 varchar，存的是 "8000-12000" 这种区间字符串。
+      直接用 salary >= '25000' 比较会走【字符串字典序】，"8000-12000" > "25000" 为真（'8' > '2'），
+      结果完全错误。正确做法是拆出上下限再转成数字比较：
+        下限 = SUBSTRING_INDEX(salary, '-', 1)   → "8000-12000" 取 '-' 前面的 "8000"
+        上限 = SUBSTRING_INDEX(salary, '-', -1)  → 取 '-' 后面的 "12000"
+      再用 +0 转成数字，才能做真正的数值比较。
+    -->
+    <select id="listBySalary" resultMap="jobMap">
+        SELECT id, company_id, title, salary, major_required
+        FROM job
+        <where>
+            <if test="min != null and min != '' and max != null and max != ''">
+                CAST(SUBSTRING_INDEX(salary, '-', 1) AS DECIMAL(10,2)) &gt;= CAST(#{min} AS DECIMAL(10,2))
+                AND CAST(SUBSTRING_INDEX(salary, '-', -1) AS DECIMAL(10,2)) &lt;= CAST(#{max} AS DECIMAL(10,2))
+            </if>
+            <if test="min != null and min != '' and (max == null or max == '')">
+                CAST(SUBSTRING_INDEX(salary, '-', -1) AS DECIMAL(10,2)) &gt;= CAST(#{min} AS DECIMAL(10,2))
+            </if>
+            <if test="(min == null or min == '') and max != null and max != ''">
+                CAST(SUBSTRING_INDEX(salary, '-', 1) AS DECIMAL(10,2)) &lt;= CAST(#{max} AS DECIMAL(10,2))
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+
+</mapper>
