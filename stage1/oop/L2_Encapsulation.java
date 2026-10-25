@@ -126,9 +126,14 @@ public class L2_Encapsulation {
         line("本关要点：");
         line("  · 数据 private，行为 public —— 这是 Java 的铁律");
         line("  · setter 里做校验，把「非法数据」挡在系统之外");
+        line("      （setter 管【输入】→ 必须校验；getter 管【输出】→ 数据进来时已干净，原样返回即可）");
         line("  · 构造方法内部也走 setter，别直接写 this.age = age");
-        line("  · getter 通常只读不判断，setter 才是校验的重点");
-        line("  · 面试常问：为什么要 getter/setter？→ 为了控制访问权限 + 加校验 + 未来加逻辑不破坏兼容");
+        line("      （构造也是数据入口，绕过 setter 校验就形同虚设）");
+        line("  · 面试常问：为什么要 getter/setter？三个理由：");
+        line("      ① 控制访问权限（读/写开放与否由你设计）");
+        line("      ② 加校验（把非法数据挡在系统之外）");
+        line("      ③ 未来加逻辑不破坏兼容（改内部 1 处，不改调用方 N 处）");
+        line("      → 第③点详解见 L13_WhyGetterSetter.java");
     }
 
     static void line(String s) {
