@@ -28,6 +28,11 @@ public class L1_ClassAndObject {
         int age;
         String major;
 
+        // 空参构造：给框架用（MyBatis/Spring 反射 new 空对象 + setter 塞值）
+        // 写了这个之后，下面那个有参构造就不再"独占"构造入口了
+        Student() {
+        }
+
         // 构造方法：造对象的"流水线"
         Student(String name, int age, String major) {
             this.name = name;      // this.xxx 左边是字段，右边是参数
@@ -98,6 +103,19 @@ public class L1_ClassAndObject {
         for (Student stu : students) {
             stu.introduce();
         }
+        line("");
+
+        // ────────────────────────────────────────
+        // ⑤-2 空参构造的用途：先造空对象再逐个赋值
+        // ────────────────────────────────────────
+        line("⑤-2 空参构造的用途（框架就是这么造对象的）");
+        Student s4 = new Student();      // ① 先造一个"空对象"
+        s4.name = "钱七";                 // ② 再逐个塞值
+        s4.age = 23;
+        s4.major = "物理学";
+        s4.introduce();
+        line("    → MyBatis / Spring 就是这样：反射 new 空对象 + setter 逐个赋值");
+        line("    → 所以实体类规范上，无参构造和有参构造【都要写】");
         line("");
 
         // ────────────────────────────────────────
