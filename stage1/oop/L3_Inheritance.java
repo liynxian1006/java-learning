@@ -24,8 +24,10 @@ public class L3_Inheritance {
 
     /** 父类：人 */
     static class Person {
-        protected String name;      // protected：子类能访问
-        protected int age;
+        // 字段用 private：只有 Person 自己能直接访问
+        // 子类要读数据，走下面 protected 的 getter（不给外部）
+        private String name;
+        private int age;
 
         public Person(String name, int age) {
             System.out.println("      → Person 构造方法执行（父类构造先于子类）");
@@ -45,10 +47,20 @@ public class L3_Inheritance {
         public String getInfo() {
             return name + "(" + age + "岁)";
         }
+
+        /** protected 方法：子类可以调，外部类调不了 —— protected 的正确用法 */
+        protected String getName() {
+            return name;
+        }
+
+        protected int getAge() {
+            return age;
+        }
     }
 
     /** 子类：学生 */
     static class Student extends Person {
+        // 子类自己的字段用 private：外部只能通过下面的 getter 访问
         private String studentId;    // 子类专属属性
         private String major;
 
@@ -63,7 +75,8 @@ public class L3_Inheritance {
         // ② @Override：重写父类的 speak()
         @Override
         public void speak() {
-            System.out.println("      " + name + " 说：我是" + major + "专业的学生");
+            // 父类字段是 private → 子类要读必须调父类的 protected getter
+            System.out.println("      " + getName() + " 说：我是" + major + "专业的学生");
         }
 
         // ③ 调父类的方法：super.方法()
@@ -88,7 +101,7 @@ public class L3_Inheritance {
 
         @Override
         public void speak() {
-            System.out.println("      " + name + " 说：同学们好，我是" + title);
+            System.out.println("      " + getName() + " 说：同学们好，我是" + title);
         }
     }
 
